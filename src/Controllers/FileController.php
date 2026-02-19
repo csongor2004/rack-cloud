@@ -48,7 +48,13 @@ class FileController
         $stmt->execute([$userId]);
         return $stmt->fetchAll();
     }
-    
+    public function batchDelete($fileIds, $userId)
+    {
+        foreach ($fileIds as $id) {
+            $this->deleteFile($id, $userId);
+        }
+        return true;
+    }
     public function hasEnoughSpace($userId, $newFileSize)
     {
         $stmt = $this->db->getConnection()->prepare("SELECT SUM(file_size) as total FROM files WHERE user_id = ?");

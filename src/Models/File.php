@@ -12,11 +12,11 @@ class File
         $this->db = $db->getConnection();
     }
 
-    public function getAllByUserId($userId)
+    public function getAllByUserId($userId): array 
     {
         $stmt = $this->db->prepare("SELECT * FROM files WHERE user_id = ? ORDER BY uploaded_at DESC");
         $stmt->execute([$userId]);
-        return $stmt->fetchAll();
+        return $stmt->fetchAll() ?: []; 
     }
 
     public function create($data)
