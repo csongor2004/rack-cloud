@@ -1,80 +1,79 @@
 <?php
 require_once __DIR__ . '/../autoloader.php';
 
-use App\Core\Database;
-use App\Core\Router;
-use App\Core\Uploader;
-use App\Core\Logger;
-use App\Core\Config;
-use App\Controllers\FileController;
+use App\Core\{Database, Router, Uploader, Logger, Auth};
+use App\Controllers\{FileController, DownloadController, ShareController, AdminController};
 use App\Models\File;
 
 session_start();
-
 
 $db = new Database();
 $uploader = new Uploader(__DIR__ . '/../storage/');
 $logger = new Logger($db);
 $router = new Router();
 
-
+// --- DASHBOARD (Főoldal) ---
 $router->add('home', function () use ($db, $uploader, $logger) {
-    if (!App\Core\Auth::check()) {
-        header("Location: login.php"); 
+    if (!Auth::check()) {
+        header("Location: index.php?url=login");
         exit;
     }
 
     $fileModel = new File($db);
-    $files = $fileModel->getAllByUserId(App\Core\Auth::id());
-    $usedSpace = $fileModel->getTotalSize(App\Core\Auth::id());
-
-   
+    $files = $fileModel->getAllByUserId(Auth::id());
+    $usedSpace = $fileModel->getTotalSize(Auth::id());
     include __DIR__ . '/../views/dashboard.php';
 });
 
-$router->add('upload', function () use ($db, $uploader, $logger) {
-    if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['cloud_file'])) {
-        $controller = new FileController($db, $uploader, $logger);
-        $controller->handleUpload($_FILES['cloud_file'], App\Core\Auth::id());
-    }
-    header("Location: index.php?url=home");
-});
-
-
-
-$router->add('batch_action', function () use ($db, $uploader, $logger) {
-    if (!App\Core\Auth::check())
-        exit;
-
-    $ids = $_POST['files'] ?? [];
-    $action = $_POST['action'] ?? '';
-    $userId = App\Core\Auth::id();
-    $controller = new FileController($db, $uploader, $logger);
-
-    if ($action === 'delete') {
-        $controller->batchDelete($ids, $userId);
-        header("Location: index.php?url=home");
-    } elseif ($action === 'zip' && !empty($ids)) {
-        
-        $fileModel = new File($db);
-        $allFiles = $fileModel->getAllByUserId($userId);
-
-        
-        $selectedFiles = array_filter($allFiles, function ($f) use ($ids) {
-            return in_array($f['id'], $ids);
-        });
-
-        $zipService = new \App\Services\ZipService();
-        $zipPath = $zipService->createZipFromFiles($selectedFiles, __DIR__ . '/../storage/');
-
-        if ($zipPath && file_exists($zipPath)) {
-            header('Content-Type: application/zip');
-            header('Content-Disposition: attachment; filename="RackCloud_Export.zip"');
-            readfile($zipPath);
-            unlink($zipPath); 
+// --- AUTH (Be- és kijelentkezés) ---
+$router->add('login', function () use ($db) {
+    if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+        if (Auth::login($_POST['username'], $_POST['password'], $db)) {
+            header("Location: index.php?url=home");
             exit;
         }
+        $error = "Helytelen felhasználónév vagy jelszó!";
+    }
+    include __DIR__ . '/../views/login.php';
+});
+
+$router->add('logout', function () {
+    session_destroy();
+    header("Location: index.php?url=login");
+    exit;
+});
+
+// --- FÁJL MŰVELETEK ---
+$router->add('upload', function () use ($db, $uploader, $logger) {
+    if (Auth::check() && $_SERVER['REQUEST_METHOD'] === 'POST') {
+        $controller = new FileController($db, $uploader, $logger);
+        $controller->handleUpload($_FILES['cloud_file'], Auth::id());
     }
     header("Location: index.php?url=home");
 });
+
+$router->add('download', function () use ($db) {
+    if (Auth::check()) {
+        $dl = new DownloadController($db, __DIR__ . '/../storage/');
+        $dl->download($_GET['id'], Auth::id());
+    }
+});
+
+$router->add('delete', function () use ($db, $uploader, $logger) {
+    if (Auth::check()) {
+        $controller = new FileController($db, $uploader, $logger);
+        $controller->deleteFile($_GET['id'], Auth::id());
+    }
+    header("Location: index.php?url=home");
+});
+
+// --- ADMIN ---
+$router->add('admin', function () use ($db) {
+    if (!Auth::check() || $_SESSION['role'] !== 'admin')
+        die("Hozzáférés megtagadva!");
+    $adminCtrl = new AdminController($db);
+    $stats = $adminCtrl->getGlobalStats();
+    include __DIR__ . '/../views/admin.php';
+});
+
 $router->dispatch($_GET['url'] ?? 'home');
