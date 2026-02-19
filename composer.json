@@ -1,0 +1,10 @@
+{
+  "$schema": "https://getcomposer.org/schema.json",
+  "name": "csongor/rack-cloud",
+  "description": "Professional File Manager for Rackhost Internship",
+  "autoload": {
+    "psr-4": {
+      "App\\": "src/"
+    }
+  }
+}

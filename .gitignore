@@ -1,0 +1,17 @@
+# Ne töltsük fel a függőségeket 
+/vendor/
+
+# A feltöltött fájlokat NE pusholjuk fel 
+/storage/*
+!/storage/.gitkeep
+
+# IDE és Rendszer szemét
+.vs/
+.vscode/
+*.log
+.DS_Store
+Thumbs.db
+
+# Konfiguráció 
+config/config.local.php
+.env
