@@ -10,16 +10,15 @@ class Database
 
     public function __construct()
     {
-        $config = [
-            'host' => 'localhost',
-            'db' => 'rack_cloud',
-            'user' => 'root',
-            'pass' => ''
-        ];
+        
+        $host = Config::get('db.host');
+        $db = Config::get('db.name');
+        $user = Config::get('db.user');
+        $pass = Config::get('db.pass');
 
         try {
-            $dsn = "mysql:host={$config['host']};dbname={$config['db']};charset=utf8mb4";
-            $this->pdo = new PDO($dsn, $config['user'], $config['pass'], [
+            $dsn = "mysql:host={$host};dbname={$db};charset=utf8mb4";
+            $this->pdo = new PDO($dsn, $user, $pass, [
                 PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
                 PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC
             ]);
