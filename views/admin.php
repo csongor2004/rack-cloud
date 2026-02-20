@@ -1,3 +1,10 @@
+<?php
+$predicter = new \App\Services\PredictiveService();
+$history = (new \App\Models\File(new \App\Core\Database()))->getStorageGrowthHistory();
+$daysLeft = $predicter->estimateDaysUntilFull($history, \App\Core\Config::get('app.storage_limit'));
+?>
+
+
 <!DOCTYPE html>
 <html lang="hu">
 <head>
@@ -74,6 +81,23 @@
         </div>
     </div>
 </div>
+</div>
+
+    <div class="row mt-4">
+    <div class="col-md-12">
+        <div class="card bg-dark text-warning shadow-sm border-0">
+            <div class="card-body d-flex align-items-center justify-content-between">
+                <div>
+                    <h5 class="mb-1"><i class="bi bi-cpu-fill"></i> AI Tárhely Előrejelzés</h5>
+                    <p class="mb-0">A jelenlegi növekedés alapján a szerver betelik:</p>
+                </div>
+                <div class="text-end">
+                    <h2 class="display-6 fw-bold mb-0"><?= $daysLeft ?> nap</h2>
+                    <small>múlva</small>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
 </body>
 </html>

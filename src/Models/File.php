@@ -40,6 +40,15 @@ class File
         $stmt->execute([$userId]);
         return $stmt->fetch()['total'] ?? 0;
     }
+    public function getStorageGrowthHistory(): array
+    {
+        return $this->db->query("
+        SELECT DATE(uploaded_at) as date, SUM(file_size) OVER (ORDER BY uploaded_at) as cumulative_size
+        FROM files
+        WHERE uploaded_at >= DATE_SUB(NOW(), INTERVAL 30 DAY)
+        GROUP BY DATE(uploaded_at)
+    ")->fetchAll() ?: [];
+    }
     public function getTypeStatistics(): array
     {
         $stmt = $this->db->prepare("
