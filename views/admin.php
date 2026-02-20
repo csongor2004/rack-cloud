@@ -54,7 +54,26 @@
                 </tbody>
             </table>
         </div>
+
     </div>
+    <div class="card shadow-sm border-0 mt-4">
+    <div class="card-header bg-white py-3">
+        <h5 class="mb-0 fw-bold">Fájltípus Megoszlás</h5>
+    </div>
+    <div class="card-body">
+        <div class="row text-center">
+            <?php foreach ($stats['type_stats'] as $type): ?>
+            <div class="col-md-3 mb-3">
+                <div class="p-3 border rounded bg-white">
+                    <h6 class="text-muted small text-uppercase fw-bold"><?= $type['file_type'] ?: 'Egyéb' ?></h6>
+                    <h4 class="mb-0"><?= $type['count'] ?> db</h4>
+                    <small class="text-info"><?= round($type['total_size'] / 1024 / 1024, 2) ?> MB</small>
+                </div>
+            </div>
+            <?php endforeach; ?>
+        </div>
+    </div>
+</div>
 </div>
 </body>
 </html>

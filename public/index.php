@@ -12,7 +12,22 @@ $uploader = new Uploader(__DIR__ . '/../storage/');
 $logger = new Logger($db);
 $router = new Router();
 
-// --- DASHBOARD (Főoldal) ---
+use App\Controllers\AuthController;
+
+$router->add('register', function () {
+    include __DIR__ . '/../views/register.php';
+});
+
+$router->add('register_action', function () use ($db, $logger) {
+    if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+        $authCtrl = new AuthController($db, $logger);
+        if ($authCtrl->register($_POST['username'], $_POST['password'])) {
+            header("Location: index.php?url=login&success=1");
+        } else {
+            header("Location: index.php?url=register&error=1");
+        }
+    }
+});
 $router->add('home', function () use ($db, $uploader, $logger) {
     if (!Auth::check()) {
         header("Location: index.php?url=login");
@@ -25,7 +40,7 @@ $router->add('home', function () use ($db, $uploader, $logger) {
     include __DIR__ . '/../views/dashboard.php';
 });
 
-// --- AUTH (Be- és kijelentkezés) ---
+
 $router->add('login', function () use ($db) {
     if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if (Auth::login($_POST['username'], $_POST['password'], $db)) {

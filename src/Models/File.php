@@ -40,4 +40,15 @@ class File
         $stmt->execute([$userId]);
         return $stmt->fetch()['total'] ?? 0;
     }
+    public function getTypeStatistics(): array
+    {
+        $stmt = $this->db->prepare("
+        SELECT file_type, COUNT(*) as count, SUM(file_size) as total_size 
+        FROM files 
+        GROUP BY file_type 
+        ORDER BY total_size DESC
+    ");
+        $stmt->execute();
+        return $stmt->fetchAll() ?: [];
+    }
 }
