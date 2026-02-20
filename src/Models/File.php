@@ -12,12 +12,14 @@ class File
         $this->db = $db->getConnection();
     }
 
+
     public function getAllByUserId($userId): array 
     {
         $stmt = $this->db->prepare("SELECT * FROM files WHERE user_id = ? ORDER BY uploaded_at DESC");
         $stmt->execute([$userId]);
         return $stmt->fetchAll() ?: []; 
     }
+
 
     public function create($data)
     {
@@ -34,12 +36,27 @@ class File
         ]);
     }
 
+
+    public function searchFiles($userId, $query)
+    {
+        $stmt = $this->db->prepare("
+        SELECT * FROM files 
+        WHERE user_id = ? AND original_name LIKE ? 
+        ORDER BY uploaded_at DESC
+    ");
+        $stmt->execute([$userId, "%$query%"]);
+        return $stmt->fetchAll() ?: [];
+    }
+
+
     public function getTotalSize($userId)
     {
         $stmt = $this->db->prepare("SELECT SUM(file_size) as total FROM files WHERE user_id = ?");
         $stmt->execute([$userId]);
         return $stmt->fetch()['total'] ?? 0;
     }
+
+
     public function getStorageGrowthHistory(): array
     {
         return $this->db->query("
@@ -49,6 +66,8 @@ class File
         GROUP BY DATE(uploaded_at)
     ")->fetchAll() ?: [];
     }
+
+
     public function getTypeStatistics(): array
     {
         $stmt = $this->db->prepare("

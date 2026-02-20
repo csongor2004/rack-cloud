@@ -37,7 +37,7 @@
            <div class="progress mb-2" style="height: 12px; border-radius: 10px;">
     <div class="progress-bar <?= $color ?> progress-bar-striped progress-bar-animated" 
          role="progressbar" 
-         style="width: <?= (int) $percent ?>"></div>
+         style="width: <?= (int) $percent ?>%;"></div>
 </div>
             <div class="d-flex justify-content-between">
                 <small class="text-muted"><?= round($usedSpace / 1024 / 1024, 2) ?> MB felhasználva</small>

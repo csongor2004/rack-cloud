@@ -53,7 +53,7 @@ $daysLeft = $predicter->estimateDaysUntilFull($history, \App\Core\Config::get('a
                         <td><?= round($u['used'] / 1024 / 1024, 2) ?> MB</td>
                         <td width="40%">
                             <div class="progress" style="height: 10px;">
-                                <div class="progress-bar bg-info" style="width: <?= ($u['used'] / 52428800) * 100 ?>"></div>
+                                <div class="progress-bar bg-info" style="width: <?= ($u['used'] / 52428800) * 100 ?>%;"></div>
                             </div>
                         </td>
                     </tr>
@@ -79,6 +79,21 @@ $daysLeft = $predicter->estimateDaysUntilFull($history, \App\Core\Config::get('a
             </div>
             <?php endforeach; ?>
         </div>
+    </div>
+</div>
+    <div class="row mb-4">
+    <div class="col-md-12 text-end">
+        <a href="index.php?url=admin_backup" class="btn btn-warning shadow-sm">
+            <i class="bi bi-archive-fill"></i> Teljes Storage Mentése (.zip)
+        </a>
+    </div>
+</div>
+
+<div class="card bg-dark text-warning border-0 shadow-sm mb-4">
+    <div class="card-body">
+        <h6><i class="bi bi-cpu"></i> Prediktív Analitika (LSTM-szerű trendfigyelés)</h6>
+        <p class="small text-muted mb-0">A feltöltési sebesség alapján becsült élettartam:</p>
+        <h3 class="fw-bold"><?= $daysLeft ?> nap</h3>
     </div>
 </div>
 </div>

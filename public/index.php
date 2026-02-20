@@ -7,12 +7,22 @@ use App\Models\File;
 
 session_start();
 
-$db = new Database();
+$db = new Database(); 
+$fileModel = new File($db); 
 $uploader = new Uploader(__DIR__ . '/../storage/');
 $logger = new Logger($db);
 $router = new Router();
 
+$search = $_GET['search'] ?? null;
+if (Auth::check()) {
+    $files = $search ? $fileModel->searchFiles(Auth::id(), $search) : $fileModel->getAllByUserId(Auth::id());
+}
+
 use App\Controllers\AuthController;
+
+
+
+
 
 $router->add('register', function () {
     include __DIR__ . '/../views/register.php';
@@ -90,5 +100,20 @@ $router->add('admin', function () use ($db) {
     $stats = $adminCtrl->getGlobalStats();
     include __DIR__ . '/../views/admin.php';
 });
+$router->add('admin_backup', function () use ($db) {
+    if (!App\Core\Auth::check() || $_SESSION['role'] !== 'admin') {
+        die("Jogosulatlan hozzáférés!"); //
+    }
 
+    $backupService = new \App\Services\BackupService(__DIR__ . '/../storage/');
+    $path = $backupService->generateFullBackup();
+
+    if ($path && file_exists($path)) {
+        header('Content-Type: application/zip');
+        header('Content-Disposition: attachment; filename="' . basename($path) . '"');
+        readfile($path);
+        unlink($path); 
+        exit;
+    }
+});
 $router->dispatch($_GET['url'] ?? 'home');
