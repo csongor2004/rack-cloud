@@ -30,14 +30,18 @@ $router->add('register', function () {
 
 $router->add('register_action', function () use ($db, $logger) {
     if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-        $authCtrl = new AuthController($db, $logger);
+        
+        $authCtrl = new \App\Controllers\AuthController($db, $logger);
         if ($authCtrl->register($_POST['username'], $_POST['password'])) {
-            header("Location: index.php?url=login&success=1");
-        } else {
-            header("Location: index.php?url=register&error=1");
+            header("Location: index.php?url=login&registered=1");
+            exit;
         }
+        $error = "A regisztráció sikertelen! (Lehet, hogy a név már foglalt)";
     }
+    include __DIR__ . '/../views/register.php';
 });
+
+
 $router->add('home', function () use ($db, $uploader, $logger) {
     if (!Auth::check()) {
         header("Location: index.php?url=login");
@@ -48,6 +52,61 @@ $router->add('home', function () use ($db, $uploader, $logger) {
     $files = $fileModel->getAllByUserId(Auth::id());
     $usedSpace = $fileModel->getTotalSize(Auth::id());
     include __DIR__ . '/../views/dashboard.php';
+});
+
+
+$router->add('share', function () use ($db) {
+    if (!App\Core\Auth::check())
+        exit;
+
+    $shareCtrl = new \App\Controllers\ShareController($db);
+    $token = $shareCtrl->createShare($_GET['id']);
+
+    if ($token) {
+        
+        header("Location: index.php?url=home&share_token=" . $token);
+        exit;
+    }
+});
+
+// --- CSOPORTOS MŰVELETEK (Törlés, ZIP letöltés) ---
+$router->add('batch_action', function () use ($db, $uploader, $logger) {
+    if (!App\Core\Auth::check())
+        exit;
+
+    $ids = $_POST['files'] ?? [];
+    $action = $_POST['action'] ?? '';
+    $userId = App\Core\Auth::id();
+
+    if (empty($ids)) {
+        header("Location: index.php?url=home");
+        exit;
+    }
+
+    if ($action === 'delete') {
+        $controller = new \App\Controllers\FileController($db, $uploader, $logger);
+        $controller->batchDelete($ids, $userId);
+    } elseif ($action === 'zip') {
+        $fileModel = new \App\Models\File($db);
+        $allFiles = $fileModel->getAllByUserId($userId);
+
+        // Csak a kijelölt fájlok szűrése
+        $selectedFiles = array_filter($allFiles, function ($f) use ($ids) {
+            return in_array($f['id'], $ids);
+        });
+
+        $zipService = new \App\Services\ZipService();
+        $zipPath = $zipService->createZipFromFiles($selectedFiles, __DIR__ . '/../storage/');
+
+        if ($zipPath && file_exists($zipPath)) {
+            header('Content-Type: application/zip');
+            header('Content-Disposition: attachment; filename="RackCloud_Export_' . time() . '.zip"');
+            readfile($zipPath);
+            unlink($zipPath); // Ideiglenes fájl törlése
+            exit;
+        }
+    }
+    header("Location: index.php?url=home");
 });
 
 

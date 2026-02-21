@@ -16,9 +16,14 @@
         </div>
         <div class="text-end">
             <span class="badge bg-primary px-3 py-2 mb-2">Bejelentkezve: <?= htmlspecialchars($_SESSION['username']) ?></span><br>
-            <?php if (isset($_SESSION['role']) && $_SESSION['role'] === 'admin'): ?>
-                <a href="index.php?url=admin" class="btn btn-sm btn-dark"><i class="bi bi-shield-lock"></i> Admin Panel</a>
-            <?php endif; ?>
+           <?php
+           $isAdminRole = isset($_SESSION['role']) && $_SESSION['role'] === 'admin';
+           
+
+           if ($isAdminRole ):
+               ?>
+    <a href="index.php?url=admin" class="btn btn-sm btn-dark"><i class="bi bi-shield-lock"></i> Admin Panel</a>
+<?php endif; ?>
             <a href="index.php?url=logout" class="btn btn-sm btn-outline-danger">Kijelentkezés</a>
         </div>
     </div>
@@ -131,7 +136,42 @@
         </div>
     </div>
 </div>
+    <div class="modal fade" id="shareModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="card shadow-lg border-0 w-100">
+            <div class="card-header bg-info text-white py-3">
+                <h5 class="mb-0 fw-bold"><i class="bi bi-share"></i> Fájl megosztása</h5>
+            </div>
+            <div class="card-body p-4 text-center">
+                <p class="text-muted">A link 24 óráig érvényes:</p>
+                <div class="input-group mb-3">
+                    <input type="text" id="shareLink" class="form-control" readonly 
+                           value="http://localhost/rack-cloud/public/share.php?token=<?= $_GET['share_token'] ?? '' ?>">
+                    <button class="btn btn-outline-primary" onclick="copyLink()">Másolás</button>
+                </div>
+                <button type="button" class="btn btn-secondary w-100" data-bs-dismiss="modal">Bezárás</button>
+            </div>
+        </div>
+    </div>
+</div>
 
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+<script>
+    // Ha van share_token az URL-ben, nyissuk meg a Modalt
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.has('share_token')) {
+        const myModal = new bootstrap.Modal(document.getElementById('shareModal'));
+        myModal.show();
+    }
+
+    function copyLink() {
+        const copyText = document.getElementById("shareLink");
+        copyText.select();
+        document.execCommand("copy");
+        alert("Link másolva a vágólapra!");
+    }
+</script>
 <script>
     document.getElementById('selectAll').addEventListener('change', function() {
         const checkboxes = document.querySelectorAll('.file-checkbox');

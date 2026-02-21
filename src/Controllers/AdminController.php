@@ -23,7 +23,14 @@ class AdminController
         $stats = [];
         $stats['total_files'] = $this->db->query("SELECT COUNT(*) FROM files")->fetchColumn();
         $stats['total_size'] = $this->db->query("SELECT SUM(file_size) FROM files")->fetchColumn();
-        $stats['top_users'] = $this->db->query("... a régi SQL ...")->fetchAll();
+        $stats['top_users'] = $this->db->query("
+            SELECT u.username, SUM(f.file_size) as used 
+            FROM users u 
+            LEFT JOIN files f ON u.id = f.user_id 
+            GROUP BY u.id 
+            ORDER BY used DESC 
+            LIMIT 5
+        ")->fetchAll();
         $stats['type_stats'] = $fileModel->getTypeStatistics();
 
         return $stats;
