@@ -1,6 +1,6 @@
 # RackCloud - Professional File Management System
 
-A RackCloud egy robusztus, PHP-alapú felhőalapú fájltároló rendszer, amelyet a Rackhost gyakornoki programjának keretében fejlesztettem. A projekt az iparági sztenderd MVC (Model-View-Controller) architektúrát követi.
+A RackCloud egy robusztus, PHP-alapú felhőalapú fájltároló rendszer. A projekt az iparági sztenderd MVC (Model-View-Controller) architektúrát követi.
 
 # Telepítés
 1. Importáld a `database.sql` fájlt a MySQL adatbázisodba.
